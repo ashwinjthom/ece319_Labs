@@ -1,0 +1,353 @@
+// Lab9HMain.cpp
+// Runs on MSPM0G3507
+// Lab 9 ECE319H
+// Ashwin Thomas, Shuopu Wang
+// Last Modified: January 12, 2026
+
+#include <stdio.h>
+#include <stdint.h>
+#include <ti/devices/msp/msp.h>
+#include "../inc/ST7735.h"
+#include "../inc/Clock.h"
+#include "../inc/LaunchPad.h"
+#include "../inc/TExaS.h"
+#include "../inc/Timer.h"
+#include "../inc/SlidePot.h"
+#include "../inc/DAC5.h"
+#include "SmallFont.h"
+#include "LED.h"
+#include "Switch.h"
+#include "Sound.h"
+#include "../inc/Car.h"
+#include "images/images.h"
+#include "images/racingIMG.h"
+
+extern "C" void __disable_irq(void);
+extern "C" void __enable_irq(void);
+extern "C" void TIMG12_IRQHandler(void);
+// ****note to ECE319K students****
+// the data sheet says the ADC does not work when clock is 80 MHz
+// however, the ADC seems to work on my boards at 80 MHz
+// I suggest you try 80MHz, but if it doesn't work, switch to 40MHz
+void PLL_Init(void){ // set phase lock loop (PLL)
+  // Clock_Init40MHz(); // run this line for 40MHz
+  Clock_Init80MHz(0);   // run this line for 80MHz
+}
+
+uint32_t M=1;
+uint32_t Random32(void){
+  M = 1664525*M+1013904223;
+  return M;
+}
+uint32_t Random(uint32_t n){
+  return (Random32()>>16)%n;
+}
+
+SlidePot Sensor(1500, 0); // copy calibration from Lab 7
+SlidePot Sensor_Acc(1500,0,0); 
+
+Car racecar;
+
+uint8_t pause_flag = 0;
+uint32_t o = 0;
+uint32_t os = 0;
+uint32_t prev_sout = 0;
+
+// games  engine runs at 30Hz
+void TIMG12_IRQHandler(void){uint32_t pos,msg;
+  if((TIMG12->CPU_INT.IIDX) == 1){ // this will acknowledge
+    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
+    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
+// game engine goes here
+    // 1) sample slide pot
+    uint32_t outs = Sensor.In();
+    if(outs > os + 5 || outs < os - 5) os = outs;
+    uint32_t out = Sensor_Acc.In();
+    if(out > o + 5 || out < o - 5) o = out;
+    // 2) read input switches
+    Clock_Delay1ms(10);
+    uint32_t sout = (GPIOA->DIN31_0 & 0x01<<15)>>15;
+    Clock_Delay1ms(10);
+    if(sout && !prev_sout) pause_flag = 1;
+    prev_sout = sout;
+    // 3) move sprites
+    racecar.Update_Position(os, o);
+    // 4) start sounds
+    // 5) set semaphore
+    Sensor.Save(os);
+    Sensor_Acc.Save(o);
+    // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
+    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
+  }
+}
+uint8_t TExaS_LaunchPadLogicPB27PB26(void){
+  return (0x80|((GPIOB->DOUT31_0>>26)&0x03));
+}
+
+typedef enum {English, Spanish, Portuguese, French} Language_t;
+Language_t myLanguage=English;
+typedef enum {HELLO, GOODBYE, LANGUAGE} phrase_t;
+const char Hello_English[] ="Hello";
+const char Hello_Spanish[] ="\xADHola!";
+const char Hello_Portuguese[] = "Ol\xA0";
+const char Hello_French[] ="All\x83";
+const char Goodbye_English[]="Goodbye";
+const char Goodbye_Spanish[]="Adi\xA2s";
+const char Goodbye_Portuguese[] = "Tchau";
+const char Goodbye_French[] = "Au revoir";
+const char Language_English[]="English";
+const char Language_Spanish[]="Espa\xA4ol";
+const char Language_Portuguese[]="Portugu\x88s";
+const char Language_French[]="Fran\x87" "ais";
+const char *Phrases[3][4]={
+  {Hello_English,Hello_Spanish,Hello_Portuguese,Hello_French},
+  {Goodbye_English,Goodbye_Spanish,Goodbye_Portuguese,Goodbye_French},
+  {Language_English,Language_Spanish,Language_Portuguese,Language_French}
+};
+// use main1 to observe special characters
+int main1(void){ // main1
+    char l;
+  __disable_irq();
+  PLL_Init(); // set bus speed
+  LaunchPad_Init();
+  ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  ST7735_FillScreen(0x0000);            // set screen to black
+  for(int myPhrase=0; myPhrase<= 2; myPhrase++){
+    for(int myL=0; myL<= 3; myL++){
+         ST7735_OutString((char *)Phrases[LANGUAGE][myL]);
+      ST7735_OutChar(' ');
+         ST7735_OutString((char *)Phrases[myPhrase][myL]);
+      ST7735_OutChar(13);
+    }
+  }
+  IOMUX->SECCFG.PINCM[PB25INDEX] = 0x00040082;
+  GPIOB->DOUT31_0 |= 0x01<<25;
+  GPIOB->DOUT31_0 |= 0x01<<25;
+  Clock_Delay1ms(3000);
+  ST7735_FillScreen(0x0000);       // set screen to black
+  l = 128;
+  while(1){
+    Clock_Delay1ms(2000);
+    for(int j=0; j < 3; j++){
+      for(int i=0;i<16;i++){
+        ST7735_SetCursor(7*j+0,i);
+        ST7735_OutUDec(l);
+        ST7735_OutChar(' ');
+        ST7735_OutChar(' ');
+        ST7735_SetCursor(7*j+4,i);
+        ST7735_OutChar(l);
+        l++;
+      }
+    }
+  }
+}
+
+// use main2 to observe graphics
+int main2(void){ // main2
+  __disable_irq();
+  PLL_Init(); // set bus speed
+  LaunchPad_Init();
+  ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  ST7735_FillScreen(ST7735_BLACK);
+  ST7735_DrawBitmap(22, 159, PlayerShip0, 18,8); // player ship bottom
+  ST7735_DrawBitmap(53, 151, Bunker0, 18,5);
+  ST7735_DrawBitmap(42, 159, PlayerShip1, 18,8); // player ship bottom
+  ST7735_DrawBitmap(62, 159, PlayerShip2, 18,8); // player ship bottom
+  ST7735_DrawBitmap(82, 159, PlayerShip3, 18,8); // player ship bottom
+  ST7735_DrawBitmap(0, 9, SmallEnemy10pointA, 16,10);
+  ST7735_DrawBitmap(20,9, SmallEnemy10pointB, 16,10);
+  ST7735_DrawBitmap(40, 9, SmallEnemy20pointA, 16,10);
+  ST7735_DrawBitmap(60, 9, SmallEnemy20pointB, 16,10);
+  ST7735_DrawBitmap(80, 9, SmallEnemy30pointA, 16,10);
+
+  for(uint32_t t=500;t>0;t=t-5){
+    SmallFont_OutVertical(t,104,6); // top left
+    Clock_Delay1ms(50);              // delay 50 msec
+  }
+  ST7735_FillScreen(0x0000);   // set screen to black
+  ST7735_SetCursor(1, 1);
+  ST7735_OutString((char *)"GAME OVER");
+  ST7735_SetCursor(1, 2);
+  ST7735_OutString((char *)"Nice try,");
+  ST7735_SetCursor(1, 3);
+  ST7735_OutString((char *)"Earthling!");
+  ST7735_SetCursor(2, 4);
+  ST7735_OutUDec(1234);
+  while(1){
+  }
+}
+
+// use main3 to test switches and LEDs
+int main3(void){ // main3
+  __disable_irq();
+  PLL_Init(); // set bus speed
+  LaunchPad_Init();
+  Switch_Init(); // initialize switches
+  LED_Init(); // initialize LED
+  while(1){
+    // write code to test switches and LEDs
+
+  }
+}
+// use main4 to test sound outputs
+int main4(void){ uint32_t last=0,now;
+  __disable_irq();
+  PLL_Init(); // set bus speed
+  LaunchPad_Init();
+  Switch_Init(); // initialize switches
+  LED_Init(); // initialize LED
+  Sound_Init();  // initialize sound
+  TExaS_Init(ADC0,6,0); // ADC1 channel 6 is PB20, TExaS scope
+  __enable_irq();
+  while(1){
+    now = Switch_In(); // one of your buttons
+    if((last == 0)&&(now == 1)){
+      Sound_Shoot(); // call one of your sounds
+    }
+    if((last == 0)&&(now == 2)){
+      Sound_Killed(); // call one of your sounds
+    }
+    if((last == 0)&&(now == 4)){
+      Sound_Explosion(); // call one of your sounds
+    }
+    if((last == 0)&&(now == 8)){
+      Sound_Fastinvader1(); // call one of your sounds
+    }
+    // modify this to test all your sounds
+  }
+}
+// ALL ST7735 OUTPUT MUST OCCUR IN MAIN
+int main5(void){ // final main
+  __disable_irq();
+  PLL_Init(); // set bus speed
+  LaunchPad_Init();
+  ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  ST7735_FillScreen(ST7735_BLACK);
+  Sensor.Init(); // PB18 = ADC1 channel 5, slidepot
+  Switch_Init(); // initialize switches
+  LED_Init();    // initialize LED
+  Sound_Init();  // initialize sound
+  TExaS_Init(0,0,&TExaS_LaunchPadLogicPB27PB26); // PB27 and PB26
+    // initialize interrupts on TimerG12 at 30 Hz
+  
+  // initialize all data structures
+  __enable_irq();
+
+  while(1){
+    // wait for semaphore
+       // clear semaphore
+       // update ST7735R
+    // check for end game or level switch
+  }
+}
+
+void Erase_Car(int16_t x, int16_t y, const uint16_t *background) {
+    uint16_t patch[14 * 14];
+    for (int row = 0; row < 14; row++) {
+        for (int col = 0; col < 14; col++) {
+            int src_row = (159 - y) + row;
+            int src_col = x + col;
+            if(src_row >= 0 && src_row < 160 && src_col >= 0 && src_col < 128)
+                patch[row * 14 + col] = background[src_row * 128 + src_col];
+        }
+    }
+    ST7735_DrawBitmap(x, y, patch, 14, 14);
+}
+
+struct TrackSegment {
+    const uint16_t *image;
+    int16_t boundary_x;   // pixel value where next segment starts
+    int16_t boundary_y;
+    bool is_right;
+    bool is_x;
+};
+
+const TrackSegment track[] = {
+    { T17_20, 57, 20, 1, 0},
+    { T1_2, 20, 80, 0, 1}
+    /*{ T3_5, 20, 1},
+    { T6_9, 20, 1},
+    { T10_11, 20, 1},
+    { T11_BackStraight, 20, 1},
+    { T12_17, 20, 1},*/
+};
+#define NUM_SEGMENTS 2
+
+uint8_t track_idx = 0;
+const uint16_t *current_bg = T17_20;
+
+
+int main(void){ // final main
+  __disable_irq();
+  PLL_Init(); // set bus speed
+  LaunchPad_Init();
+  ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  ST7735_FillScreen(ST7735_BLACK);
+  Sensor.Init(); // PB18, channel 5, slidepot
+  Sensor_Acc.Init(); // PB20 = ADC1 channel 6, slidepot
+  Switch_Init(); // initialize switches, PA15
+  LED_Init();    // initialize LED
+  Sound_Init();  // initialize sound
+  TExaS_Init(0,0,&TExaS_LaunchPadLogicPB27PB26); // PB27 and PB26
+    // initialize interrupts on TimerG12 at 30 Hz
+  TimerG12_IntArm(2666667, 2); //80MHz clock
+  // initialize all data structures
+  __enable_irq();
+  racecar.Set_Model(LOTUS);
+  //racecar.Update_Position(2048, 2048);
+  
+  ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
+  racecar.Reset();
+  int16_t old_x = 57;
+  int16_t old_y = 128;
+  ST7735_DrawBitmap(old_x, old_y, BlueBall, 14, 14);
+  Clock_Delay1ms(100);
+  while(1){
+    // wait for semaphore
+       // clear semaphore
+    Sensor.Sync();
+    Sensor_Acc.Sync();
+       // update ST7735R
+
+    Erase_Car(old_x, old_y, current_bg);
+
+    if(pause_flag) {
+      racecar.Reset(); pause_flag=0; track_idx = 0; current_bg = track[0].image; ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
+    }
+    old_x = racecar.Get_x();
+    old_y = racecar.Get_y();
+
+    TrackSegment seg = track[track_idx];
+    bool crossed;
+    if(!seg.is_x) {
+      if(seg.is_right) crossed = old_x >= seg.boundary_x && old_y <= seg.boundary_y;
+      else crossed = old_x <= seg.boundary_x && old_y <=seg.boundary_y;
+    } else {
+      if(seg.is_right) crossed = old_x <= seg.boundary_x && old_y <= seg.boundary_y;
+      else crossed = old_x <= seg.boundary_x && old_y >= seg.boundary_y;
+    }
+    if(crossed) {
+      track_idx = (track_idx + 1) % NUM_SEGMENTS;
+      current_bg = track[track_idx].image;
+      if(seg.is_x) {
+        racecar.Set_Pos(old_x + 118, old_y);
+        old_x += 118;
+      } else { 
+        racecar.Set_Pos(old_x, old_y + 140);
+        old_y += 140;
+      }
+      ST7735_DrawBitmap(0, 159, current_bg, 128, 160);  // redraw background
+    }
+
+    
+    /*ST7735_SetCursor(0,0);
+    ST7735_OutUDec4(old_x);
+    ST7735_SetCursor(0,1);
+    ST7735_OutUDec4(old_y);
+    ST7735_SetCursor(0, 2);
+    ST7735_OutUDec4(racecar.Get_heading());*/
+    
+    racecar.Draw_Car(old_x, old_y, BlueBall, current_bg);
+    // check for end game or level switch
+  }
+}
