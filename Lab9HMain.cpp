@@ -75,6 +75,8 @@ bool cleared = false;
 
 TrackSegment seg = track[track_idx];
 
+uint32_t count = 0; // lap time in 1/30 s
+
 // games  engine runs at 30Hz
 void TIMG12_IRQHandler(void){uint32_t pos,msg;
   if((TIMG12->CPU_INT.IIDX) == 1){ // this will acknowledge
@@ -98,6 +100,7 @@ void TIMG12_IRQHandler(void){uint32_t pos,msg;
     // 5) set semaphore
     Sensor.Save(os);
     Sensor_Acc.Save(o);
+    count++;
     // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
   }
@@ -159,6 +162,7 @@ int main(void){ // final main
 
     Erase_Car(old_x, old_y, current_bg);
 
+    //reset car to flying start
     if(pause_flag) {
       racecar.Reset(); 
       pause_flag=0; 
@@ -168,18 +172,32 @@ int main(void){ // final main
       ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
     }
 
+    //get new pos
     old_x = racecar.Get_x();
     old_y = racecar.Get_y();
     
+    //check boundary crossing
     seg = track[track_idx];
     Select_Segment(seg, racecar, &old_x, &old_y);
     
+    //update background
     if(old_bg != current_bg) {
       ST7735_DrawBitmap(0, 159, current_bg, 128, 160);  // redraw background
       old_bg = current_bg;
     }
     
+    //display lap time every one second
+    if (count % 30 == 0) {
+      uint32_t sec = count / 30; // time in seconds
+      uint8_t min = sec / 60;
+      sec = sec % 60;
 
+      char time[] = {
+        (char) (0x30 + min % 10), ':', 
+        (char) (0x30 + sec / 10), (char) (0x30 + sec % 10)
+        };
+      ST7735_DrawString(15, 0, time, 0xFFFF);
+    }
     
     ST7735_SetCursor(0,0);
     ST7735_OutUDec4(old_x);
