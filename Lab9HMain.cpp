@@ -19,6 +19,7 @@
 #include "Switch.h"
 #include "Sound.h"
 #include "images/images.h"
+#include "StartScreen.h"
 extern "C" void __disable_irq(void);
 extern "C" void __enable_irq(void);
 extern "C" void TIMG12_IRQHandler(void);
@@ -224,7 +225,7 @@ int main5(void){ // final main
 //custom test
 // main6: test 12-bit DAC output on PA15
 // Scope PA15 to see ramp wave, or press buttons to test sounds
-int main(void) { //main6
+int main6(void) { //main6
   __disable_irq();
   PLL_Init();          // 80 MHz
   LaunchPad_Init();
@@ -251,3 +252,107 @@ int main(void) { //main6
   }
 }
 
+// main7: test StartScreen, potentiometer, and switches together
+// Flow:
+//   1. Runs StartScreen_Run() — exercises start screen display, pot-based language
+//      selection (arrow tracks pot position), SW1 to confirm, SW2 to reset.
+//   2. After selection, shows a live diagnostic screen:
+//        - Which language was chosen
+//        - Live pot raw value (0-4095) and a 20-char ASCII bar
+//        - Live state of SW1 and SW2 (PRESSED / ------)
+//   3. Pressing SW2 on the diagnostic screen loops back to StartScreen_Run.
+int main(void) { // main7
+  __disable_irq();
+  PLL_Init();
+  LaunchPad_Init();
+  ST7735_InitPrintf(INITR_REDTAB);
+  ST7735_FillScreen(ST7735_BLACK);
+  Sensor.Init();
+  Switch_Init();
+  LED_Init();
+  Sound_Init();
+  __enable_irq();
+
+  while (1) {
+    // ---- Phase 1: Start screen (tests pot + switches + LCD) ----------------
+    GameLanguage_t lang = StartScreen_Run(Sensor);
+
+    // ---- Phase 2: Live diagnostic screen -----------------------------------
+    ST7735_FillScreen(ST7735_BLACK);
+
+    ST7735_SetTextColor(ST7735_YELLOW);
+    ST7735_SetCursor(1, 0);
+    ST7735_OutString((char *)"=== DIAG SCREEN ===");
+
+    // Show selected language (static, only drawn once)
+    ST7735_SetTextColor(ST7735_CYAN);
+    ST7735_SetCursor(0, 1);
+    ST7735_OutString((char *)"Lang: ");
+    if (lang == GAME_LANG_ENGLISH) {
+      ST7735_OutString((char *)"English  ");
+    } else {
+      ST7735_OutString((char *)"Espanol  ");
+    }
+
+    ST7735_SetTextColor(ST7735_WHITE);
+    ST7735_SetCursor(0, 3);
+    ST7735_OutString((char *)"Pot raw (0-4095):");
+    ST7735_SetCursor(0, 6);
+    ST7735_OutString((char *)"Switches:");
+    ST7735_SetTextColor(ST7735_RED);
+    ST7735_SetCursor(0, 15);
+    ST7735_OutString((char *)"SW2=Back to Menu");
+
+    while (1) {
+      Clock_Delay1ms(100);
+
+      // --- Pot: raw value and ASCII bar ------------------------------------
+      uint32_t raw = Sensor.In(); // 0-4095
+      ST7735_SetTextColor(ST7735_WHITE);
+      ST7735_SetCursor(0, 4);
+      ST7735_OutUDec(raw);
+      ST7735_OutString((char *)"    "); // clear leftover digits
+
+      // 20-char bar: each char = 4096/20 = ~205 units
+      uint32_t filled = raw / 205;
+      if (filled > 20) filled = 20;
+      ST7735_SetCursor(0, 5);
+      ST7735_SetTextColor(ST7735_GREEN);
+      ST7735_OutChar('[');
+      for (uint32_t i = 0; i < 20; i++) {
+        ST7735_OutChar(i < filled ? '#' : ' ');
+      }
+      ST7735_OutChar(']');
+
+      // --- Switches: live state --------------------------------------------
+      uint32_t sw = Switch_In(); // bit0=SW1(PA27), bit1=SW2(PA28)
+
+      ST7735_SetCursor(0, 7);
+      if (sw & 0x01) {
+        ST7735_SetTextColor(ST7735_GREEN);
+        ST7735_OutString((char *)"SW1(PA27): PRESSED");
+      } else {
+        ST7735_SetTextColor(ST7735_WHITE);
+        ST7735_OutString((char *)"SW1(PA27): ------");
+      }
+
+      ST7735_SetCursor(0, 9);
+      if (sw & 0x02) {
+        ST7735_SetTextColor(ST7735_GREEN);
+        ST7735_OutString((char *)"SW2(PA28): PRESSED");
+      } else {
+        ST7735_SetTextColor(ST7735_WHITE);
+        ST7735_OutString((char *)"SW2(PA28): ------");
+      }
+
+      // SW2 rising edge -> return to start screen
+      static uint32_t lastSw = 0;
+      if (!(lastSw & 0x02) && (sw & 0x02)) {
+        lastSw = sw;
+        break;
+      }
+      lastSw = sw;
+    }
+    // outer while(1) -> StartScreen_Run again
+  }
+}
