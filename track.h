@@ -1,7 +1,7 @@
 #ifndef TRACK_H
 #define TRACK_H
 #include <stdint.h>
-#include "../inc/Car.h"
+#include "Car.h"
 #include "../images/racingIMG.h"
 
 struct TrackSegment {
