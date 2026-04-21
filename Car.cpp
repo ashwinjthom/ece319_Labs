@@ -22,9 +22,6 @@
 #define Y_MIN_FP (13 << FP)
 #define Y_MAX_FP (159 << FP)
 
-//power map of car
-const uint32_t *maps[12] = {lotus};
-
 //car images
 const uint16_t *images[3] = {
     BlueBall, BlueBall, BlueBall
@@ -41,18 +38,6 @@ Car::Car(){
     gear = 1;
     torque_fp = lotus;
     image = images[LOTUS];
-}
-
-Car::Car(Make m) {
-    model = m;
-    torque_fp = maps[m];
-    image= images[m];
-}
-
-void Car::Set_Model(Make m) {
-    model = m;
-    torque_fp = maps[m];
-    image = images[m];
 }
 
 void Car::Reset(void) {
@@ -105,12 +90,13 @@ void Car::Update_Velocity(uint32_t data) {
     if(in < 0) {
         if(v_fp == 0) return;
         in = -in;
-        int32_t brake_scale = 4096 - ((in * 591) >> 11);
+        int32_t brake_scale = 4096 - ((in * 295) >> 11);
         v_fp = (v_fp * brake_scale) >> FP;
     } else {
         calc_rpm(in);
         uint32_t index = (rpm - 1000) * 100 / (8500 - 1000);
-        int32_t a = (torque_fp[index] << 3) / MASS;
+        if(index > 99) index = 99;
+        int32_t a = (torque_fp[index] << 4) / MASS;
 
         int32_t rr = ((DRAG_COEFF * v_fp) >> FP) + ROLLING_RESISTANCE;
         if(v_fp > 0) rr = -rr;
@@ -127,15 +113,15 @@ void Car::Update_Velocity(uint32_t data) {
 
 void Car::Set_Angle(uint32_t data) {
     uint32_t remapped;
-    if(data < 2500) remapped = (data * 2048) / 2500;
-    else if(data > 3100)  remapped = 2048 + ((data - 3100) * 2047) / (4095 - 3100);
+    if(data < 2300) remapped = (data * 2048) / 2300;
+    else if(data > 3200)  remapped = 2048 + ((data - 3100) * 2047) / (4095 - 3100);
     else return;
     remapped = (remapped * 72) >> 12;
     int32_t steering_angle = ((int32_t)remapped - 36) << FP;
 
     if(v_fp < 64) return;
 
-    int32_t dheading = (int32_t)(((int64_t)steering_angle * v_fp) / ((int64_t)WHEELBASE << (FP - 2)));
+    int32_t dheading = (int32_t)(((int64_t)steering_angle * v_fp) / (((int64_t)WHEELBASE << (FP-2))));
     heading += dheading;
     heading = ((heading % (360 << FP)) + (360 << FP)) % (360 << FP);
 }
@@ -147,11 +133,11 @@ void Car::Update_Position(uint32_t os, uint32_t o){
     x_fp += vx_fp;
     y_fp += vy_fp;
 
-    if(x_fp > X_MAX_FP) {x_fp = X_MAX_FP; v_fp = 0; vx_fp = 0; vy_fp = 0;}
-    else if(x_fp < X_MIN_FP) {x_fp = X_MIN_FP; v_fp = 0; vx_fp = 0; vy_fp = 0;}
+    if(x_fp > X_MAX_FP) {x_fp = X_MAX_FP - 10; v_fp = 0; vx_fp = 0; vy_fp = 0;}
+    else if(x_fp < X_MIN_FP) {x_fp = X_MIN_FP + 10; v_fp = 0; vx_fp = 0; vy_fp = 0;}
 
-    if(y_fp > Y_MAX_FP) {y_fp = Y_MAX_FP; v_fp = 0; vx_fp = 0; vy_fp = 0;}
-    else if(y_fp < Y_MIN_FP) {y_fp = Y_MIN_FP; v_fp = 0; vx_fp = 0; vy_fp = 0;}
+    if(y_fp > Y_MAX_FP) {y_fp = Y_MAX_FP - 10; v_fp = 0; vx_fp = 0; vy_fp = 0;}
+    else if(y_fp < Y_MIN_FP) {y_fp = Y_MIN_FP + 10; v_fp = 0; vx_fp = 0; vy_fp = 0;}
 }
 
 int16_t Car::Get_x() {

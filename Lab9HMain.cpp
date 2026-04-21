@@ -21,6 +21,7 @@
 #include "../inc/Car.h"
 #include "images/images.h"
 #include "images/racingIMG.h"
+#include "track.h"
 
 extern "C" void __disable_irq(void);
 extern "C" void __enable_irq(void);
@@ -53,6 +54,27 @@ uint32_t o = 0;
 uint32_t os = 0;
 uint32_t prev_sout = 0;
 
+int16_t old_x = 57;
+int16_t old_y = 128;
+
+//image, x bound, y bound, x entry, y entry, x cp, y cp, cp tolerance, is_right, is_x
+extern const TrackSegment track[] = {
+    { T17_20, 70, 20, 0, 150, 90, 146, 20, 1, 0},
+    { T1_2, 5, 120, 113, 0, 88, 90, 20, 0, 1}
+    /*{ T3_5, 20, 1},
+    { T6_9, 20, 1},
+    { T10_11, 20, 1},
+    { T11_BackStraight, 20, 1},
+    { T12_17, 20, 1},*/
+};
+
+uint8_t track_idx = 0;
+const uint16_t *old_bg = T17_20;
+const uint16_t *current_bg = T17_20;
+bool cleared = false;
+
+TrackSegment seg = track[track_idx];
+
 // games  engine runs at 30Hz
 void TIMG12_IRQHandler(void){uint32_t pos,msg;
   if((TIMG12->CPU_INT.IIDX) == 1){ // this will acknowledge
@@ -66,7 +88,7 @@ void TIMG12_IRQHandler(void){uint32_t pos,msg;
     if(out > o + 5 || out < o - 5) o = out;
     // 2) read input switches
     Clock_Delay1ms(10);
-    uint32_t sout = (GPIOA->DIN31_0 & 0x01<<15)>>15;
+    uint32_t sout = (GPIOA->DIN31_0 & 0x01<<27)>>27;
     Clock_Delay1ms(10);
     if(sout && !prev_sout) pause_flag = 1;
     prev_sout = sout;
@@ -104,6 +126,84 @@ const char *Phrases[3][4]={
   {Goodbye_English,Goodbye_Spanish,Goodbye_Portuguese,Goodbye_French},
   {Language_English,Language_Spanish,Language_Portuguese,Language_French}
 };
+
+
+int main(void){ // final main
+  __disable_irq();
+  PLL_Init(); // set bus speed
+  LaunchPad_Init();
+  ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  ST7735_FillScreen(ST7735_BLACK);
+  Sensor.Init(); // PB18, channel 5, slidepot
+  Sensor_Acc.Init(); // PB20 = ADC1 channel 6, slidepot
+  Switch_Init(); // initialize switches, PA15
+  LED_Init();    // initialize LED
+  Sound_Init();  // initialize sound
+  TExaS_Init(0,0,&TExaS_LaunchPadLogicPB27PB26); // PB27 and PB26
+    // initialize interrupts on TimerG12 at 30 Hz
+  TimerG12_IntArm(2666667, 2); //80MHz clock
+  // initialize all data structures
+  __enable_irq();
+  //racecar.Update_Position(2048, 2048);
+  
+  ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
+  racecar.Reset();
+  ST7735_DrawBitmap(old_x, old_y, BlueBall, 14, 14);
+  Clock_Delay1ms(100);
+  while(1){
+    // wait for semaphore
+       // clear semaphore
+    Sensor.Sync();
+    Sensor_Acc.Sync();
+       // update ST7735R
+
+    Erase_Car(old_x, old_y, current_bg);
+
+    if(pause_flag) {
+      racecar.Reset(); 
+      pause_flag=0; 
+      cleared = false;
+      track_idx = 0; 
+      current_bg = track[0].image;
+      ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
+    }
+
+    old_x = racecar.Get_x();
+    old_y = racecar.Get_y();
+    
+    seg = track[track_idx];
+    Select_Segment(seg, racecar, &old_x, &old_y);
+    
+    if(old_bg != current_bg) {
+      ST7735_DrawBitmap(0, 159, current_bg, 128, 160);  // redraw background
+      old_bg = current_bg;
+    }
+    
+
+    
+    ST7735_SetCursor(0,0);
+    ST7735_OutUDec4(old_x);
+    ST7735_SetCursor(0,1);
+    ST7735_OutUDec4(old_y);
+    /*ST7735_SetCursor(0, 2);
+    ST7735_OutUDec4(racecar.Get_heading());*/
+    
+    racecar.Draw_Car(old_x, old_y, BlueBall, current_bg);
+    // check for end game or level switch
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 // use main1 to observe special characters
 int main1(void){ // main1
     char l;
@@ -241,113 +341,3 @@ int main5(void){ // final main
   }
 }
 
-void Erase_Car(int16_t x, int16_t y, const uint16_t *background) {
-    uint16_t patch[14 * 14];
-    for (int row = 0; row < 14; row++) {
-        for (int col = 0; col < 14; col++) {
-            int src_row = (159 - y) + row;
-            int src_col = x + col;
-            if(src_row >= 0 && src_row < 160 && src_col >= 0 && src_col < 128)
-                patch[row * 14 + col] = background[src_row * 128 + src_col];
-        }
-    }
-    ST7735_DrawBitmap(x, y, patch, 14, 14);
-}
-
-struct TrackSegment {
-    const uint16_t *image;
-    int16_t boundary_x;   // pixel value where next segment starts
-    int16_t boundary_y;
-    bool is_right;
-    bool is_x;
-};
-
-const TrackSegment track[] = {
-    { T17_20, 57, 20, 1, 0},
-    { T1_2, 20, 80, 0, 1}
-    /*{ T3_5, 20, 1},
-    { T6_9, 20, 1},
-    { T10_11, 20, 1},
-    { T11_BackStraight, 20, 1},
-    { T12_17, 20, 1},*/
-};
-#define NUM_SEGMENTS 2
-
-uint8_t track_idx = 0;
-const uint16_t *current_bg = T17_20;
-
-
-int main(void){ // final main
-  __disable_irq();
-  PLL_Init(); // set bus speed
-  LaunchPad_Init();
-  ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
-  ST7735_FillScreen(ST7735_BLACK);
-  Sensor.Init(); // PB18, channel 5, slidepot
-  Sensor_Acc.Init(); // PB20 = ADC1 channel 6, slidepot
-  Switch_Init(); // initialize switches, PA15
-  LED_Init();    // initialize LED
-  Sound_Init();  // initialize sound
-  TExaS_Init(0,0,&TExaS_LaunchPadLogicPB27PB26); // PB27 and PB26
-    // initialize interrupts on TimerG12 at 30 Hz
-  TimerG12_IntArm(2666667, 2); //80MHz clock
-  // initialize all data structures
-  __enable_irq();
-  racecar.Set_Model(LOTUS);
-  //racecar.Update_Position(2048, 2048);
-  
-  ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
-  racecar.Reset();
-  int16_t old_x = 57;
-  int16_t old_y = 128;
-  ST7735_DrawBitmap(old_x, old_y, BlueBall, 14, 14);
-  Clock_Delay1ms(100);
-  while(1){
-    // wait for semaphore
-       // clear semaphore
-    Sensor.Sync();
-    Sensor_Acc.Sync();
-       // update ST7735R
-
-    Erase_Car(old_x, old_y, current_bg);
-
-    if(pause_flag) {
-      racecar.Reset(); pause_flag=0; track_idx = 0; current_bg = track[0].image; ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
-    }
-    old_x = racecar.Get_x();
-    old_y = racecar.Get_y();
-
-    TrackSegment seg = track[track_idx];
-    bool crossed;
-    if(!seg.is_x) {
-      if(seg.is_right) crossed = old_x >= seg.boundary_x && old_y <= seg.boundary_y;
-      else crossed = old_x <= seg.boundary_x && old_y <=seg.boundary_y;
-    } else {
-      if(seg.is_right) crossed = old_x <= seg.boundary_x && old_y <= seg.boundary_y;
-      else crossed = old_x <= seg.boundary_x && old_y >= seg.boundary_y;
-    }
-    if(crossed) {
-      track_idx = (track_idx + 1) % NUM_SEGMENTS;
-      current_bg = track[track_idx].image;
-      if(seg.is_x) {
-        racecar.Set_Pos(old_x + 118, old_y);
-        old_x += 118;
-      } else { 
-        racecar.Set_Pos(old_x, old_y + 140);
-        old_y += 140;
-      }
-      ST7735_DrawBitmap(0, 159, current_bg, 128, 160);  // redraw background
-    }
-
-    
-    /*ST7735_SetCursor(0,0);
-    ST7735_OutUDec4(old_x);
-    ST7735_SetCursor(0,1);
-    ST7735_OutUDec4(old_y);
-    ST7735_SetCursor(0, 2);
-    ST7735_OutUDec4(racecar.Get_heading());*/
-    
-    racecar.Draw_Car(old_x, old_y, BlueBall, current_bg);
-    // check for end game or level switch
-  }
-}
