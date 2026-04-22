@@ -2,6 +2,7 @@
 #include "tables.h"
 #include "images/racingIMG.h"
 #include "../inc/ST7735.h"
+#include "Sound.h"
 
 #define MAX_STEERING_ANGLE 36
 #define DRAG_COEFF 390//(390) //fixed point rr 1/s
@@ -97,7 +98,9 @@ void Car::Update_Velocity(uint32_t data) {
         in = -in;
         int32_t brake_scale = 4096 - ((in * 200) >> 11);
         v_fp = (v_fp * brake_scale) >> FP;
+        Sound_EngineAccelerate();
     } else {
+        int32_t prev_v = v_fp;
         calc_rpm(in);
         uint32_t index = (rpm - 1000) * 100 / (8500 - 1000);
         if(index > 99) index = 99;
@@ -108,6 +111,8 @@ void Car::Update_Velocity(uint32_t data) {
 
         v_fp += ((a + rr) * DT) >> FP;
         if(v_fp < 0) v_fp = 0;
+
+        if(v_fp > prev_v && !Sound_IsPlaying()) Sound_EngineAccelerate();
     }
 
     int32_t hsin = sin_table[((heading >> FP) + 90) % 360];
@@ -138,11 +143,14 @@ void Car::Update_Position(uint32_t os, uint32_t o){
     x_fp += vx_fp;
     y_fp += vy_fp;
 
-    if(x_fp > X_MAX_FP) {x_fp = X_MAX_FP - 10; v_fp = 0; vx_fp = 0; vy_fp = 0;}
-    else if(x_fp < X_MIN_FP) {x_fp = X_MIN_FP + 10; v_fp = 0; vx_fp = 0; vy_fp = 0;}
+    bool crash = false;
+    if(x_fp > X_MAX_FP) {x_fp = X_MAX_FP - 10; v_fp = 0; vx_fp = 0; vy_fp = 0; crash = true;}
+    else if(x_fp < X_MIN_FP) {x_fp = X_MIN_FP + 10; v_fp = 0; vx_fp = 0; vy_fp = 0; crash = true;}
 
-    if(y_fp > Y_MAX_FP) {y_fp = Y_MAX_FP - 10; v_fp = 0; vx_fp = 0; vy_fp = 0;}
-    else if(y_fp < Y_MIN_FP) {y_fp = Y_MIN_FP + 10; v_fp = 0; vx_fp = 0; vy_fp = 0;}
+    if(y_fp > Y_MAX_FP) {y_fp = Y_MAX_FP - 10; v_fp = 0; vx_fp = 0; vy_fp = 0; crash = true;}
+    else if(y_fp < Y_MIN_FP) {y_fp = Y_MIN_FP + 10; v_fp = 0; vx_fp = 0; vy_fp = 0; crash = true;}
+
+    //if(crash) Sound_Crash();
 }
 
 int16_t Car::Get_x() {

@@ -22,6 +22,8 @@
 #include "images/images.h"
 #include "images/racingIMG.h"
 #include "track.h"
+#include "StartScreen.h"
+#include "Sound.h"
 
 extern "C" void __disable_irq(void);
 extern "C" void __enable_irq(void);
@@ -44,15 +46,19 @@ uint32_t Random(uint32_t n){
   return (Random32()>>16)%n;
 }
 
-SlidePot Sensor(1500, 0); // copy calibration from Lab 7
-SlidePot Sensor_Acc(1500,0,0); 
+SlidePot Sensor(1500, 0); // PB18
+SlidePot Sensor_Acc(1500,0,0); //PB20
 
 Car racecar;
 
-uint8_t pause_flag = 0;
+uint8_t reset_flag = 0;
+uint8_t start_flag = 0;
+uint8_t game_flag = 0;
+
+
 uint32_t o = 0;
 uint32_t os = 0;
-uint32_t prev_sout = 0;
+
 
 int16_t old_x = 57;
 int16_t old_y = 128;
@@ -92,17 +98,18 @@ void TIMG12_IRQHandler(void){uint32_t pos,msg;
     if(out > o + 5 || out < o - 5) o = out;
     // 2) read input switches
     Clock_Delay1ms(10);
-    uint32_t sout = (GPIOA->DIN31_0 & 0x01<<27)>>27;
+    uint32_t sout = Switch_In();
+    uint32_t reset = sout & 0x01;
+    uint32_t start = (sout & 0x02) >> 1;
     Clock_Delay1ms(10);
-    if(sout && !prev_sout) pause_flag = 1;
-    prev_sout = sout;
+    if(reset) reset_flag = 1;
+    if(start && game_flag) start_flag = 1;
     // 3) move sprites
-    racecar.Update_Position(os, o);
+    if(game_flag) {racecar.Update_Position(os, o); count++;}
     // 4) start sounds
     // 5) set semaphore
     Sensor.Save(os);
     Sensor_Acc.Save(o);
-    count++;
     // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
   }
@@ -132,7 +139,7 @@ const char *Phrases[3][4]={
   {Language_English,Language_Spanish,Language_Portuguese,Language_French}
 };
 
-
+GameLanguage_t lang = GAME_LANG_ENGLISH;
 
 int main(void){ // final main
   __disable_irq();
@@ -151,6 +158,8 @@ int main(void){ // final main
   __enable_irq();
 
   //start screen here, return from start screen to start game
+  Sound_GameStart();
+  lang = StartScreen_Run(Sensor);
 
   ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
   racecar.Reset();
@@ -158,9 +167,11 @@ int main(void){ // final main
   ST7735_SetCursor(0, 15);
   ST7735_OutUDec(lap_count);
   Clock_Delay1ms(3000);
+  
   TimerG12_IntArm(2666667, 2); //80MHz clock
 
   while(1){
+    game_flag=1;
     // wait for semaphore
        // clear semaphore
     Sensor.Sync();
@@ -169,18 +180,44 @@ int main(void){ // final main
 
     Erase_Car(old_x, old_y, current_bg);
 
-    //reset car to flying start
-    if(pause_flag) {
-      racecar.Reset(); 
-      pause_flag=0; 
+    //go back to start screen
+    if(start_flag) {
+      start_flag = 0;
       cleared = false;
+      game_flag = 0;
       count = 0;
       lap_complete = false;
       track_idx = 0; 
       current_bg = track[0].image;
+      Sound_GameStart();
+      lang = StartScreen_Run(Sensor);
+    
+      NVIC->ICER[0] = 1 << 21;
+      ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
+      racecar.Reset();
+      ST7735_DrawBitmap(old_x, old_y, BlueBall, 14, 14);
+      ST7735_SetCursor(0, 15);
+      ST7735_OutUDec(lap_count);
+      Clock_Delay1ms(3000);
+      TimerG12_IntArm(2666667, 2); //80MHz clock
+    }
+
+    //reset car to flying start
+    if(reset_flag) {
+      racecar.Reset(); 
+      reset_flag=0; 
+      cleared = false;
+      count = 0;
+      lap_complete = false;
+      lap_count = 0;
+      track_idx = 0; 
+      current_bg = track[0].image;
+
+      NVIC->ICER[0] = 1 << 21;
       ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
       ST7735_SetCursor(0, 15);
       ST7735_OutUDec(lap_count);
+      TimerG12_IntArm(2666667, 2); //80MHz clock
     }
 
     //get new pos
@@ -307,16 +344,16 @@ int main4(void){ uint32_t last=0,now;
   while(1){
     now = Switch_In(); // one of your buttons
     if((last == 0)&&(now == 1)){
-      Sound_Shoot(); // call one of your sounds
+     // Sound_Shoot(); // call one of your sounds
     }
     if((last == 0)&&(now == 2)){
-      Sound_Killed(); // call one of your sounds
+      //Sound_Killed(); // call one of your sounds
     }
     if((last == 0)&&(now == 4)){
-      Sound_Explosion(); // call one of your sounds
+      //Sound_Explosion(); // call one of your sounds
     }
     if((last == 0)&&(now == 8)){
-      Sound_Fastinvader1(); // call one of your sounds
+      //Sound_Fastinvader1(); // call one of your sounds
     }
     // modify this to test all your sounds
   }

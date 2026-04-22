@@ -18,6 +18,6 @@ void Switch_Init(void){
 uint32_t Switch_In(void){
     // write this
   uint32_t data = GPIOA->DIN31_0;
-  data = ((data>>15)&0x03) | ((data&((1<<28)|(1<<27)))>>25);
-  return data; // return 0; //replace this your code
+  return (data >> 27) & 0x03;
+  //return data; // return 0; //replace this your code
 }

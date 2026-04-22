@@ -17,6 +17,7 @@ C:/Projects/319/MSPM0_ValvanoWare/inc/ST7735.cpp \
 C:/Projects/319/MSPM0_ValvanoWare/inc/SlidePot.cpp \
 ../SmallFont.cpp \
 ../Sound.cpp \
+../StartScreen.cpp \
 ../Switch.cpp \
 C:/Projects/319/MSPM0_ValvanoWare/inc/TExaS.cpp \
 C:/Projects/319/MSPM0_ValvanoWare/inc/Timer.cpp \
@@ -37,6 +38,7 @@ OBJS += \
 ./SlidePot.o \
 ./SmallFont.o \
 ./Sound.o \
+./StartScreen.o \
 ./Switch.o \
 ./TExaS.o \
 ./Timer.o \
@@ -54,6 +56,7 @@ CPP_DEPS += \
 ./SlidePot.d \
 ./SmallFont.d \
 ./Sound.d \
+./StartScreen.d \
 ./Switch.d \
 ./TExaS.d \
 ./Timer.d \
@@ -71,6 +74,7 @@ OBJS__QUOTED += \
 "SlidePot.o" \
 "SmallFont.o" \
 "Sound.o" \
+"StartScreen.o" \
 "Switch.o" \
 "TExaS.o" \
 "Timer.o" \
@@ -88,6 +92,7 @@ CPP_DEPS__QUOTED += \
 "SlidePot.d" \
 "SmallFont.d" \
 "Sound.d" \
+"StartScreen.d" \
 "Switch.d" \
 "TExaS.d" \
 "Timer.d" \
@@ -105,6 +110,7 @@ CPP_SRCS__QUOTED += \
 "C:/Projects/319/MSPM0_ValvanoWare/inc/SlidePot.cpp" \
 "../SmallFont.cpp" \
 "../Sound.cpp" \
+"../StartScreen.cpp" \
 "../Switch.cpp" \
 "C:/Projects/319/MSPM0_ValvanoWare/inc/TExaS.cpp" \
 "C:/Projects/319/MSPM0_ValvanoWare/inc/Timer.cpp" \

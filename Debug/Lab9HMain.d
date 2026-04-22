@@ -35,7 +35,8 @@ Lab9HMain.o: ../Lab9HMain.cpp \
  ../../inc/TExaS.h ../../inc/Timer.h ../../inc/SlidePot.h \
  ../../inc/DAC5.h ../SmallFont.h ../LED.h ../Switch.h ../Sound.h \
  ../Car.h ../images/images.h ../images/racingIMG.h ../track.h \
- C:/Projects/319/MSPM0_ValvanoWare/ECE319K_Lab9H/images/racingIMG.h
+ C:/Projects/319/MSPM0_ValvanoWare/ECE319K_Lab9H/images/racingIMG.h \
+ ../StartScreen.h
 C:/ti/mspm0_sdk_2_03_00_07/source/ti/devices/msp/msp.h:
 C:/ti/mspm0_sdk_2_03_00_07/source/ti/devices/DeviceFamily.h:
 C:/ti/mspm0_sdk_2_03_00_07/source/ti/devices/msp/m0p/mspm0g350x.h:
@@ -82,3 +83,4 @@ C:/ti/mspm0_sdk_2_03_00_07/source/ti/devices/msp/peripherals/m0p/sysctl/hw_sysct
 ../images/racingIMG.h:
 ../track.h:
 C:/Projects/319/MSPM0_ValvanoWare/ECE319K_Lab9H/images/racingIMG.h:
+../StartScreen.h:
