@@ -12,6 +12,7 @@
 "./Switch.o"
 "./TExaS.o"
 "./Timer.o"
+"./track.o"
 "./images/pipedreams/PipeSound.o"
 "./ticlang/startup_mspm0g3507_ticlang.o"
 "../mspm0g3507.cmd"

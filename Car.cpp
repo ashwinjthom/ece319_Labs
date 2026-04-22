@@ -1,5 +1,5 @@
-#include "../inc/Car.h"
-#include "../inc/tables.h"
+#include "Car.h"
+#include "tables.h"
 #include "images/racingIMG.h"
 #include "../inc/ST7735.h"
 
@@ -85,12 +85,17 @@ void Car::calc_rpm(uint32_t data) {
 }
 
 void Car::Update_Velocity(uint32_t data) {
-    int32_t in = data - 2048;
+    uint32_t remapped;
+    if(data < 1800) remapped = (data * 2048) / 1800;
+    else if(data > 2400)  remapped = 2048 + ((data - 2400) * 2047) / (4095 - 2400);
+    else return;
+
+    int32_t in = remapped - 2048;
 
     if(in < 0) {
         if(v_fp == 0) return;
         in = -in;
-        int32_t brake_scale = 4096 - ((in * 295) >> 11);
+        int32_t brake_scale = 4096 - ((in * 200) >> 11);
         v_fp = (v_fp * brake_scale) >> FP;
     } else {
         calc_rpm(in);
@@ -113,8 +118,8 @@ void Car::Update_Velocity(uint32_t data) {
 
 void Car::Set_Angle(uint32_t data) {
     uint32_t remapped;
-    if(data < 2300) remapped = (data * 2048) / 2300;
-    else if(data > 3200)  remapped = 2048 + ((data - 3100) * 2047) / (4095 - 3100);
+    if(data < 1800) remapped = (data * 2048) / 1800;
+    else if(data > 2400)  remapped = 2048 + ((data - 2400) * 2047) / (4095 - 2400);
     else return;
     remapped = (remapped * 72) >> 12;
     int32_t steering_angle = ((int32_t)remapped - 36) << FP;
@@ -150,24 +155,6 @@ int16_t Car::Get_y() {
 
 int32_t Car::Get_heading(void) {
     return heading >> FP;
-}
-
-void Car::Draw_Car(int16_t x, int16_t y, const uint16_t *sprite, const uint16_t *background) {
-    uint16_t patch[14 * 14];
-    for (int row = 0; row < 14; row++) {
-        for (int col = 0; col < 14; col++) {
-            uint16_t px = sprite[row * 14 + col];
-            if (px == 0x0000) {
-                int src_row = (159 - y) + row;
-                int src_col = x + col;
-                px = (src_row >= 0 && src_row < 160 && src_col >= 0 && src_col < 128)
-                    ? background[src_row * 128 + src_col]
-                    : 0x0000;
-            }
-            patch[row * 14 + col] = px;
-        }
-    }
-    ST7735_DrawBitmap(x, y, patch, 14, 14);
 }
 
 void Car::Set_Pos(uint32_t x, uint32_t y) {

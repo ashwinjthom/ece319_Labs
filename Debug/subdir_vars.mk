@@ -19,7 +19,8 @@ C:/Projects/319/MSPM0_ValvanoWare/inc/SlidePot.cpp \
 ../Sound.cpp \
 ../Switch.cpp \
 C:/Projects/319/MSPM0_ValvanoWare/inc/TExaS.cpp \
-C:/Projects/319/MSPM0_ValvanoWare/inc/Timer.cpp 
+C:/Projects/319/MSPM0_ValvanoWare/inc/Timer.cpp \
+../track.cpp 
 
 CMD_SRCS += \
 ../mspm0g3507.cmd 
@@ -38,7 +39,8 @@ OBJS += \
 ./Sound.o \
 ./Switch.o \
 ./TExaS.o \
-./Timer.o 
+./Timer.o \
+./track.o 
 
 CPP_DEPS += \
 ./Car.d \
@@ -54,7 +56,8 @@ CPP_DEPS += \
 ./Sound.d \
 ./Switch.d \
 ./TExaS.d \
-./Timer.d 
+./Timer.d \
+./track.d 
 
 OBJS__QUOTED += \
 "Car.o" \
@@ -70,7 +73,8 @@ OBJS__QUOTED += \
 "Sound.o" \
 "Switch.o" \
 "TExaS.o" \
-"Timer.o" 
+"Timer.o" \
+"track.o" 
 
 CPP_DEPS__QUOTED += \
 "Car.d" \
@@ -86,7 +90,8 @@ CPP_DEPS__QUOTED += \
 "Sound.d" \
 "Switch.d" \
 "TExaS.d" \
-"Timer.d" 
+"Timer.d" \
+"track.d" 
 
 CPP_SRCS__QUOTED += \
 "../Car.cpp" \
@@ -102,6 +107,7 @@ CPP_SRCS__QUOTED += \
 "../Sound.cpp" \
 "../Switch.cpp" \
 "C:/Projects/319/MSPM0_ValvanoWare/inc/TExaS.cpp" \
-"C:/Projects/319/MSPM0_ValvanoWare/inc/Timer.cpp" 
+"C:/Projects/319/MSPM0_ValvanoWare/inc/Timer.cpp" \
+"../track.cpp" 
 
 

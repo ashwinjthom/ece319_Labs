@@ -60,7 +60,7 @@ int16_t old_y = 128;
 //image, x bound, y bound, x entry, y entry, x cp, y cp, cp tolerance, is_right, is_x
 extern const TrackSegment track[] = {
     { T17_20, 70, 20, 0, 150, 90, 146, 20, 1, 0},
-    { T1_2, 5, 120, 113, 0, 88, 90, 20, 0, 1}
+    { T1_2, 5, 115, 113, 0, 85, 90, 40, 0, 1}
     /*{ T3_5, 20, 1},
     { T6_9, 20, 1},
     { T10_11, 20, 1},
@@ -69,13 +69,15 @@ extern const TrackSegment track[] = {
 };
 
 uint8_t track_idx = 0;
-const uint16_t *old_bg = T17_20;
 const uint16_t *current_bg = T17_20;
 bool cleared = false;
 
 TrackSegment seg = track[track_idx];
 
 uint32_t count = 0; // lap time in 1/30 s
+bool lap_complete = false;
+uint32_t lap_record = 0; // lap record in 1/30 s
+uint32_t lap_count= 0; // number of laps completed
 
 // games  engine runs at 30Hz
 void TIMG12_IRQHandler(void){uint32_t pos,msg;
@@ -131,6 +133,7 @@ const char *Phrases[3][4]={
 };
 
 
+
 int main(void){ // final main
   __disable_irq();
   PLL_Init(); // set bus speed
@@ -144,15 +147,19 @@ int main(void){ // final main
   Sound_Init();  // initialize sound
   TExaS_Init(0,0,&TExaS_LaunchPadLogicPB27PB26); // PB27 and PB26
     // initialize interrupts on TimerG12 at 30 Hz
-  TimerG12_IntArm(2666667, 2); //80MHz clock
   // initialize all data structures
   __enable_irq();
-  //racecar.Update_Position(2048, 2048);
-  
+
+  //start screen here, return from start screen to start game
+
   ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
   racecar.Reset();
   ST7735_DrawBitmap(old_x, old_y, BlueBall, 14, 14);
-  Clock_Delay1ms(100);
+  ST7735_SetCursor(0, 15);
+  ST7735_OutUDec(lap_count);
+  Clock_Delay1ms(3000);
+  TimerG12_IntArm(2666667, 2); //80MHz clock
+
   while(1){
     // wait for semaphore
        // clear semaphore
@@ -167,9 +174,13 @@ int main(void){ // final main
       racecar.Reset(); 
       pause_flag=0; 
       cleared = false;
+      count = 0;
+      lap_complete = false;
       track_idx = 0; 
       current_bg = track[0].image;
       ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
+      ST7735_SetCursor(0, 15);
+      ST7735_OutUDec(lap_count);
     }
 
     //get new pos
@@ -178,25 +189,11 @@ int main(void){ // final main
     
     //check boundary crossing
     seg = track[track_idx];
-    Select_Segment(seg, racecar, &old_x, &old_y);
-    
-    //update background
-    if(old_bg != current_bg) {
-      ST7735_DrawBitmap(0, 159, current_bg, 128, 160);  // redraw background
-      old_bg = current_bg;
-    }
+    Display_Segment(seg, racecar, &old_x, &old_y);
     
     //display lap time every one second
-    if (count % 30 == 0) {
-      uint32_t sec = count / 30; // time in seconds
-      uint8_t min = sec / 60;
-      sec = sec % 60;
-
-      char time[] = {
-        (char) (0x30 + min % 10), ':', 
-        (char) (0x30 + sec / 10), (char) (0x30 + sec % 10)
-        };
-      ST7735_DrawString(15, 0, time, 0xFFFF);
+    if (count % 31 == 0) {
+      Display_Time(17, 0, count);
     }
     
     ST7735_SetCursor(0,0);
@@ -206,20 +203,10 @@ int main(void){ // final main
     /*ST7735_SetCursor(0, 2);
     ST7735_OutUDec4(racecar.Get_heading());*/
     
-    racecar.Draw_Car(old_x, old_y, BlueBall, current_bg);
+    Draw_Car(old_x, old_y, BlueBall, current_bg);
     // check for end game or level switch
-  }
+    }
 }
-
-
-
-
-
-
-
-
-
-
 
 
 // use main1 to observe special characters

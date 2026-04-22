@@ -1,5 +1,6 @@
 /* Racing Game images*/
-
+#ifndef RACING_IMG_H
+#define RACING_IMG_H
 
 //test sprite
 const unsigned short BlueBall[] = {
@@ -9012,3 +9013,5 @@ const unsigned short T12_17[] = {
  0x75DA, 0x75FB, 0x6DDB, 0x659B, 0x65DB, 0x6DFC, 0x65DB, 0x5559, 0x4D59, 0x55BB, 0x5DBB, 0x55BB, 0x55BB, 0x55FC, 0x5E1D, 0x9E3B,
 
 };
+
+#endif

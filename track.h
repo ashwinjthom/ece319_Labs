@@ -17,8 +17,12 @@ struct TrackSegment {
     bool is_x;
 };
 
-void Select_Segment(TrackSegment seg, Car &racecar, int16_t *old_x, int16_t *old_y);
+void Display_Segment(TrackSegment seg, Car &racecar, int16_t *old_x, int16_t *old_y);
 
 void Erase_Car(int16_t x, int16_t y, const uint16_t *background);
+
+void Display_Time(int16_t x, int16_t y, uint32_t counts);
+
+void Draw_Car(int16_t x, int16_t y, const uint16_t *sprite, const uint16_t *background);
 
 #endif

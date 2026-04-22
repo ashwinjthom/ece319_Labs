@@ -30,7 +30,6 @@ public:
     int16_t Get_x(void);
     int16_t Get_y(void);
     int32_t Get_heading(void);
-    void Draw_Car(int16_t x, int16_t y, const uint16_t *sprite, const uint16_t *background);
     void Set_Pos(uint32_t x, uint32_t y);
 };
 
