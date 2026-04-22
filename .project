@@ -51,6 +51,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/inc/ST7735.cpp</locationURI>
 		</link>
 		<link>
+			<name>ST7735_SDC.cpp</name>
+			<type>1</type>
+			<location>/Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/SDCFilecpp/ST7735_SDC.cpp</location>
+		</link>
+		<link>
 			<name>SlidePot.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/inc/SlidePot.cpp</locationURI>
@@ -64,6 +69,31 @@
 			<name>Timer.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/inc/Timer.cpp</locationURI>
+		</link>
+		<link>
+			<name>UART.c</name>
+			<type>1</type>
+			<location>/Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/UART.c</location>
+		</link>
+		<link>
+			<name>UARTbusywait.c</name>
+			<type>1</type>
+			<location>/Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/UARTbusywait.c</location>
+		</link>
+		<link>
+			<name>UARTints.c</name>
+			<type>1</type>
+			<location>/Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/UARTints.c</location>
+		</link>
+		<link>
+			<name>diskio.cpp</name>
+			<type>1</type>
+			<location>/Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/SDCFilecpp/diskio.cpp</location>
+		</link>
+		<link>
+			<name>ff.cpp</name>
+			<type>1</type>
+			<location>/Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/SDCFilecpp/ff.cpp</location>
 		</link>
 	</linkedResources>
 </projectDescription>

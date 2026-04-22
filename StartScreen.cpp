@@ -3,10 +3,19 @@
 // Blocking start screen: splash -> language select -> return chosen language.
 // SW1 (PA27, bit 0) advances / confirms. SW2 (PA28, bit 1) resets to splash.
 #include "StartScreen.h"
-#include "../inc/ST7735.h"
+//#include "../inc/ST7735.h"
 #include "../inc/Clock.h"
 #include "Switch.h"
 #include "Sound.h"
+
+#include "../SDCFilecpp/diskio.h"
+#include "../SDCFilecpp/ST7735_SDC.h"
+#include "../SDCFilecpp/ff.h"
+#include "../SDCFilecpp/ffconf.h"
+#include "../SDCFilecpp/integer.h"
+extern "C" {
+#include "../inc/UART.h"
+}
 
 // ---- internal helpers -------------------------------------------------------
 
@@ -110,8 +119,9 @@ static void UpdateArrow(uint8_t sel) {
 
 GameLanguage_t StartScreen_Run(SlidePot &pot) {
   while (1) {
-    // Phase 1: Splash — wait for SW1; SW2 redraws splash (already at start)
+    UART_OutString((char *)"[SS] DrawSplash start\r\n");
     DrawSplash();
+    UART_OutString((char *)"[SS] DrawSplash done, waiting SW1\r\n");
     while (1) {
       uint32_t sw = WaitForSwitch();
       if (sw == 1) break;

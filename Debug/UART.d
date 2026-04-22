@@ -1,7 +1,7 @@
 # FIXED
 
-ST7735.o: \
- /Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/ST7735.cpp \
+UART.o: \
+ /Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/UART.c \
  /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/msp.h \
  /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/DeviceFamily.h \
  /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/m0p/mspm0g350x.h \
@@ -32,9 +32,7 @@ ST7735.o: \
  /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/hw_debugss.h \
  /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/hw_sysctl.h \
  /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/sysctl/hw_sysctl_mspm0g1x0x_g3x0x.h \
- /Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/ST7735.h \
- /Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/SPI.h \
- /Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/Clock.h
+ /Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/UART.h
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/msp.h:
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/DeviceFamily.h:
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/m0p/mspm0g350x.h:
@@ -65,6 +63,4 @@ ST7735.o: \
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/hw_debugss.h:
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/hw_sysctl.h:
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/sysctl/hw_sysctl_mspm0g1x0x_g3x0x.h:
-/Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/ST7735.h:
-/Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/SPI.h:
-/Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/Clock.h:
+/Users/shampoo/Documents/UTAustin/Coursework/Sp26/319H/MSPM0_ValvanoWare/inc/UART.h:

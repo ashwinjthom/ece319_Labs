@@ -31,10 +31,12 @@ Lab9HMain.o: ../Lab9HMain.cpp \
  /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/hw_debugss.h \
  /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/hw_sysctl.h \
  /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/sysctl/hw_sysctl_mspm0g1x0x_g3x0x.h \
- ../../inc/ST7735.h ../../inc/Clock.h ../../inc/LaunchPad.h \
- ../../inc/TExaS.h ../../inc/Timer.h ../../inc/SlidePot.h \
- ../../inc/DAC5.h ../SmallFont.h ../LED.h ../Switch.h ../Sound.h \
- ../images/images.h ../StartScreen.h
+ ../../inc/Clock.h ../../inc/DAC5.h ../../inc/LaunchPad.h \
+ ../../inc/SlidePot.h ../../inc/TExaS.h ../../inc/Timer.h ../LED.h \
+ ../SDImage.h ../SmallFont.h ../Sound.h ../StartScreen.h ../Switch.h \
+ ../images/images.h ../../inc/UART.h ../../SDCFilecpp/ST7735_SDC.h \
+ ../../SDCFilecpp/diskio.h ../../SDCFilecpp/integer.h \
+ ../../SDCFilecpp/ff.h ../../SDCFilecpp/ffconf.h
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/msp.h:
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/DeviceFamily.h:
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/m0p/mspm0g350x.h:
@@ -65,16 +67,22 @@ Lab9HMain.o: ../Lab9HMain.cpp \
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/hw_debugss.h:
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/hw_sysctl.h:
 /Users/shampoo/ti/mspm0_sdk_2_09_00_01/source/ti/devices/msp/peripherals/m0p/sysctl/hw_sysctl_mspm0g1x0x_g3x0x.h:
-../../inc/ST7735.h:
 ../../inc/Clock.h:
+../../inc/DAC5.h:
 ../../inc/LaunchPad.h:
+../../inc/SlidePot.h:
 ../../inc/TExaS.h:
 ../../inc/Timer.h:
-../../inc/SlidePot.h:
-../../inc/DAC5.h:
-../SmallFont.h:
 ../LED.h:
-../Switch.h:
+../SDImage.h:
+../SmallFont.h:
 ../Sound.h:
-../images/images.h:
 ../StartScreen.h:
+../Switch.h:
+../images/images.h:
+../../inc/UART.h:
+../../SDCFilecpp/ST7735_SDC.h:
+../../SDCFilecpp/diskio.h:
+../../SDCFilecpp/integer.h:
+../../SDCFilecpp/ff.h:
+../../SDCFilecpp/ffconf.h:
