@@ -162,7 +162,7 @@ void SPI1_Init(void){
 // 99 for   400,000 bps slow mode, used during initialization
 // 4  for 8,000,000 bps fast mode, used during disk I/O
 #define FCLK_SLOW() { SPI1->CLKCTL = 99; }
-#define FCLK_FAST() { SPI1->CLKCTL = 80/4 -1; }// 8 MHz
+#define FCLK_FAST() { SPI1->CLKCTL = 80/4 -1; }// 2 MHz
 
 
 //#define  MMC_CD    !(GPIOC_IDR & _BV(4))  /* Card detect (yes:true, no:false, default:true) */

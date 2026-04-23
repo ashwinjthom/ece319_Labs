@@ -150,7 +150,7 @@ void Car::Update_Position(uint32_t os, uint32_t o){
     if(y_fp > Y_MAX_FP) {y_fp = Y_MAX_FP - 10; v_fp = 0; vx_fp = 0; vy_fp = 0; crash = true;}
     else if(y_fp < Y_MIN_FP) {y_fp = Y_MIN_FP + 10; v_fp = 0; vx_fp = 0; vy_fp = 0; crash = true;}
 
-    //if(crash) Sound_Crash();
+    if(crash) Sound_Crash();
 }
 
 int16_t Car::Get_x() {

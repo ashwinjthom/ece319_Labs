@@ -65,15 +65,16 @@ uint32_t os = 0;
 int16_t old_x = 57;
 int16_t old_y = 128;
 
-//image, x bound, y bound, x entry, y entry, x cp, y cp, cp tolerance, is_right, is_x
+//image, x bound, y bound, x entry, y entry, x cp, y cp, cp tolerance, is_right, is_x, is_forward
 extern const TrackSegment track[] = {
-    { "T17_20.bin", 70, 20, 0, 150, 90, 146, 20, 1, 0},
-    { "T1_2.bin", 5, 115, 113, 0, 85, 90, 40, 0, 1}
-    /*{ T3_5, 20, 1},
-    { T6_9, 20, 1},
-    { T10_11, 20, 1},
-    { T11_BackStraight, 20, 1},
-    { T12_17, 20, 1},*/
+    { "T17_20.bin", 70, 20, 0, 150, 90, 146, 20, 1, 0, 1},
+    { "T1_2.bin", 5, 115, 113, 0, 85, 90, 20, 0, 1, 1},
+    { "T3_5.bin", 5, 115, 113, 0, 57, 120, 20, 0, 1, 1},
+    { "T6_9.bin", 5, 60, 113, 0, 57, 90, 20, 1, 1, 1},
+    { "T10_11.bin", 108, 100, 2, 0, 15, 20, 20, 1, 1, 0},
+    { "T6_9.bin", 57, 155, 0, 19, 40, 145, 20, 1, 0, 0},
+    { "T11_Back.bin", 108, 80, 2, 0, 70, 40, 20, 1, 1, 0},
+    { "T12_17.bin", 75, 35, 2, 0, 40, 15, 20, 0, 1, 0},
 };
 
 uint8_t track_idx = 0;
@@ -167,7 +168,8 @@ int main(void){ // final main
   Sound_GameStart();
   lang = StartScreen_Run(Sensor);
 
-  SDImage_Draw(current_bg, 0, 159);
+  int rc = SDImage_Draw(current_bg, 0, 159);
+  if(rc) {while(1){}}
   racecar.Reset();
   ST7735_DrawBitmap(old_x, old_y, BlueBall, 14, 14);
   ST7735_SetCursor(0, 15);

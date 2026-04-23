@@ -5,7 +5,7 @@
 #include "../SDCFilecpp/diskio.h"
 #include "../SDCFilecpp/ST7735_SDC.h"
 
-#define NUM_SEGMENTS 2
+#define NUM_SEGMENTS 8
 
 extern const TrackSegment track[NUM_SEGMENTS];
 extern uint8_t track_idx;
@@ -34,14 +34,23 @@ void Display_Segment(TrackSegment seg, Car &racecar, int16_t *old_x, int16_t *ol
 
     if(!cleared) return;   // boundary not live yet
 
-    if(!seg.is_x) {
-        if(seg.is_right) crossed = *old_x >= seg.boundary_x && *old_y <= seg.boundary_y;
-        else crossed = *old_x <= seg.boundary_x && *old_y <=seg.boundary_y;
+    if(seg.is_forward) {
+        if(!seg.is_x) {
+            if(seg.is_right) crossed = *old_x >= seg.boundary_x && *old_y <= seg.boundary_y;
+            else crossed = *old_x <= seg.boundary_x && *old_y <=seg.boundary_y;
+        } else {
+            if(seg.is_right) crossed = *old_x <= seg.boundary_x && *old_y <= seg.boundary_y;
+            else crossed = *old_x <= seg.boundary_x && *old_y >= seg.boundary_y;
+        }
     } else {
-        if(seg.is_right) crossed = *old_x <= seg.boundary_x && *old_y <= seg.boundary_y;
-        else crossed = *old_x <= seg.boundary_x && *old_y >= seg.boundary_y;
+        if(!seg.is_x) {
+            if(seg.is_right) crossed = *old_x <= seg.boundary_x && *old_y >= seg.boundary_y;
+            else crossed = *old_x >= seg.boundary_x && *old_y >=seg.boundary_y;
+        } else {
+            if(seg.is_right) crossed = *old_x >= seg.boundary_x && *old_y >= seg.boundary_y;
+            else crossed = *old_x >= seg.boundary_x && *old_y <= seg.boundary_y;
+        }
     }
-    
     if(crossed) {
         track_idx = (track_idx + 1) % NUM_SEGMENTS;
         if(track_idx == NUM_SEGMENTS - 1) lap_complete = true;

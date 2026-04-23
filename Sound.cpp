@@ -132,12 +132,12 @@ void Sound_GameStart(void)
 void Sound_GameEnd(void)
 {
 
-//  Sound_Start(gameEnd, 3377);
+  //Sound_Start(gameEnd, 3377);
 }
 void Sound_Crash(void)
 {
 
-//  Sound_Start(crash, 8731);
+  Sound_Start(crash, 8731);
 }
 
 void Sound_EngineAccelerate(void)

@@ -15,6 +15,7 @@ struct TrackSegment {
     int16_t cp_tol;   // pixel tolerance (radius)
     bool is_right;
     bool is_x;
+    bool is_forward;
 };
 
 void Display_Segment(TrackSegment seg, Car &racecar, int16_t *old_x, int16_t *old_y);
