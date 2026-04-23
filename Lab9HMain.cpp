@@ -7,7 +7,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <ti/devices/msp/msp.h>
-#include "../inc/ST7735.h"
+#include "../SDCFilecpp/diskio.h"
+#include "../SDCFilecpp/ST7735_SDC.h"
+#include "SDImage.h"
 #include "../inc/Clock.h"
 #include "../inc/LaunchPad.h"
 #include "../inc/TExaS.h"
@@ -65,8 +67,8 @@ int16_t old_y = 128;
 
 //image, x bound, y bound, x entry, y entry, x cp, y cp, cp tolerance, is_right, is_x
 extern const TrackSegment track[] = {
-    { T17_20, 70, 20, 0, 150, 90, 146, 20, 1, 0},
-    { T1_2, 5, 115, 113, 0, 85, 90, 40, 0, 1}
+    { "T17_20.bin", 70, 20, 0, 150, 90, 146, 20, 1, 0},
+    { "T1_2.bin", 5, 115, 113, 0, 85, 90, 40, 0, 1}
     /*{ T3_5, 20, 1},
     { T6_9, 20, 1},
     { T10_11, 20, 1},
@@ -75,12 +77,13 @@ extern const TrackSegment track[] = {
 };
 
 uint8_t track_idx = 0;
-const uint16_t *current_bg = T17_20;
+const char *current_bg = "T17_20.bin";
 bool cleared = false;
 
 TrackSegment seg = track[track_idx];
 
 uint32_t count = 0; // lap time in 1/30 s
+uint32_t last_time_display = 0;
 bool lap_complete = false;
 uint32_t lap_record = 0; // lap record in 1/30 s
 uint32_t lap_count= 0; // number of laps completed
@@ -145,8 +148,11 @@ int main(void){ // final main
   __disable_irq();
   PLL_Init(); // set bus speed
   LaunchPad_Init();
-  ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  //ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  disk_initialize(0);
+  ST7735_InitPrintf();
   ST7735_FillScreen(ST7735_BLACK);
+  SDImage_Init();
   Sensor.Init(); // PB18, channel 5, slidepot
   Sensor_Acc.Init(); // PB20 = ADC1 channel 6, slidepot
   Switch_Init(); // initialize switches, PA15
@@ -161,7 +167,7 @@ int main(void){ // final main
   Sound_GameStart();
   lang = StartScreen_Run(Sensor);
 
-  ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
+  SDImage_Draw(current_bg, 0, 159);
   racecar.Reset();
   ST7735_DrawBitmap(old_x, old_y, BlueBall, 14, 14);
   ST7735_SetCursor(0, 15);
@@ -178,7 +184,7 @@ int main(void){ // final main
     Sensor_Acc.Sync();
        // update ST7735R
 
-    Erase_Car(old_x, old_y, current_bg);
+    int16_t erase_x = old_x, erase_y = old_y;
 
     //go back to start screen
     if(start_flag) {
@@ -186,14 +192,15 @@ int main(void){ // final main
       cleared = false;
       game_flag = 0;
       count = 0;
+      last_time_display = 0;
       lap_complete = false;
-      track_idx = 0; 
+      track_idx = 0;
       current_bg = track[0].image;
       Sound_GameStart();
       lang = StartScreen_Run(Sensor);
     
       NVIC->ICER[0] = 1 << 21;
-      ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
+      SDImage_Draw(current_bg, 0, 159);
       racecar.Reset();
       ST7735_DrawBitmap(old_x, old_y, BlueBall, 14, 14);
       ST7735_SetCursor(0, 15);
@@ -208,13 +215,14 @@ int main(void){ // final main
       reset_flag=0; 
       cleared = false;
       count = 0;
+      last_time_display = 0;
       lap_complete = false;
       lap_count = 0;
       track_idx = 0; 
       current_bg = track[0].image;
 
       NVIC->ICER[0] = 1 << 21;
-      ST7735_DrawBitmap(0, 159, current_bg, 128, 160);
+      SDImage_Draw(current_bg, 0, 159);
       ST7735_SetCursor(0, 15);
       ST7735_OutUDec(lap_count);
       TimerG12_IntArm(2666667, 2); //80MHz clock
@@ -229,8 +237,9 @@ int main(void){ // final main
     Display_Segment(seg, racecar, &old_x, &old_y);
     
     //display lap time every one second
-    if (count % 31 == 0) {
+    if (count >= last_time_display + 31) {
       Display_Time(17, 0, count);
+      last_time_display = count;
     }
     
     ST7735_SetCursor(0,0);
@@ -240,7 +249,7 @@ int main(void){ // final main
     /*ST7735_SetCursor(0, 2);
     ST7735_OutUDec4(racecar.Get_heading());*/
     
-    Draw_Car(old_x, old_y, BlueBall, current_bg);
+    Update_Car(erase_x, erase_y, old_x, old_y, BlueBall, current_bg);
     // check for end game or level switch
     }
 }
@@ -252,7 +261,8 @@ int main1(void){ // main1
   __disable_irq();
   PLL_Init(); // set bus speed
   LaunchPad_Init();
-  ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  //ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  ST7735_InitPrintf();
   ST7735_FillScreen(0x0000);            // set screen to black
   for(int myPhrase=0; myPhrase<= 2; myPhrase++){
     for(int myL=0; myL<= 3; myL++){
@@ -289,7 +299,8 @@ int main2(void){ // main2
   __disable_irq();
   PLL_Init(); // set bus speed
   LaunchPad_Init();
-  ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  //ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  ST7735_InitPrintf();
   ST7735_FillScreen(ST7735_BLACK);
   ST7735_DrawBitmap(22, 159, PlayerShip0, 18,8); // player ship bottom
   ST7735_DrawBitmap(53, 151, Bunker0, 18,5);
@@ -363,7 +374,8 @@ int main5(void){ // final main
   __disable_irq();
   PLL_Init(); // set bus speed
   LaunchPad_Init();
-  ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  //ST7735_InitPrintf(INITR_REDTAB); // INITR_REDTAB for AdaFruit, INITR_BLACKTAB for HiLetGo
+  ST7735_InitPrintf();
   ST7735_FillScreen(ST7735_BLACK);
   Sensor.Init(); // PB18 = ADC1 channel 5, slidepot
   Switch_Init(); // initialize switches

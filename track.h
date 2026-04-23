@@ -5,7 +5,7 @@
 #include "../images/racingIMG.h"
 
 struct TrackSegment {
-    const uint16_t *image;
+    const char *image;
     int16_t boundary_x;   // pixel value where next segment starts
     int16_t boundary_y;
     int16_t entry_x;
@@ -19,10 +19,10 @@ struct TrackSegment {
 
 void Display_Segment(TrackSegment seg, Car &racecar, int16_t *old_x, int16_t *old_y);
 
-void Erase_Car(int16_t x, int16_t y, const uint16_t *background);
+void Update_Car(int16_t erase_x, int16_t erase_y,
+                int16_t draw_x,  int16_t draw_y,
+                const uint16_t *sprite, const char *filename);
 
 void Display_Time(int16_t x, int16_t y, uint32_t counts);
-
-void Draw_Car(int16_t x, int16_t y, const uint16_t *sprite, const uint16_t *background);
 
 #endif

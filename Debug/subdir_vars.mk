@@ -12,8 +12,9 @@ C:/Projects/319/MSPM0_ValvanoWare/inc/DAC5.cpp \
 ../LED.cpp \
 ../Lab9HMain.cpp \
 C:/Projects/319/MSPM0_ValvanoWare/inc/LaunchPad.cpp \
+../SDImage.cpp \
 C:/Projects/319/MSPM0_ValvanoWare/inc/SPI.cpp \
-C:/Projects/319/MSPM0_ValvanoWare/inc/ST7735.cpp \
+../ST7735_SDC.cpp \
 C:/Projects/319/MSPM0_ValvanoWare/inc/SlidePot.cpp \
 ../SmallFont.cpp \
 ../Sound.cpp \
@@ -21,10 +22,20 @@ C:/Projects/319/MSPM0_ValvanoWare/inc/SlidePot.cpp \
 ../Switch.cpp \
 C:/Projects/319/MSPM0_ValvanoWare/inc/TExaS.cpp \
 C:/Projects/319/MSPM0_ValvanoWare/inc/Timer.cpp \
+../diskio.cpp \
+../ff.cpp \
 ../track.cpp 
 
 CMD_SRCS += \
 ../mspm0g3507.cmd 
+
+C_SRCS += \
+../UART.c \
+../UARTbusywait.c 
+
+C_DEPS += \
+./UART.d \
+./UARTbusywait.d 
 
 OBJS += \
 ./Car.o \
@@ -33,8 +44,9 @@ OBJS += \
 ./LED.o \
 ./Lab9HMain.o \
 ./LaunchPad.o \
+./SDImage.o \
 ./SPI.o \
-./ST7735.o \
+./ST7735_SDC.o \
 ./SlidePot.o \
 ./SmallFont.o \
 ./Sound.o \
@@ -42,6 +54,10 @@ OBJS += \
 ./Switch.o \
 ./TExaS.o \
 ./Timer.o \
+./UART.o \
+./UARTbusywait.o \
+./diskio.o \
+./ff.o \
 ./track.o 
 
 CPP_DEPS += \
@@ -51,8 +67,9 @@ CPP_DEPS += \
 ./LED.d \
 ./Lab9HMain.d \
 ./LaunchPad.d \
+./SDImage.d \
 ./SPI.d \
-./ST7735.d \
+./ST7735_SDC.d \
 ./SlidePot.d \
 ./SmallFont.d \
 ./Sound.d \
@@ -60,6 +77,8 @@ CPP_DEPS += \
 ./Switch.d \
 ./TExaS.d \
 ./Timer.d \
+./diskio.d \
+./ff.d \
 ./track.d 
 
 OBJS__QUOTED += \
@@ -69,8 +88,9 @@ OBJS__QUOTED += \
 "LED.o" \
 "Lab9HMain.o" \
 "LaunchPad.o" \
+"SDImage.o" \
 "SPI.o" \
-"ST7735.o" \
+"ST7735_SDC.o" \
 "SlidePot.o" \
 "SmallFont.o" \
 "Sound.o" \
@@ -78,7 +98,15 @@ OBJS__QUOTED += \
 "Switch.o" \
 "TExaS.o" \
 "Timer.o" \
+"UART.o" \
+"UARTbusywait.o" \
+"diskio.o" \
+"ff.o" \
 "track.o" 
+
+C_DEPS__QUOTED += \
+"UART.d" \
+"UARTbusywait.d" 
 
 CPP_DEPS__QUOTED += \
 "Car.d" \
@@ -87,8 +115,9 @@ CPP_DEPS__QUOTED += \
 "LED.d" \
 "Lab9HMain.d" \
 "LaunchPad.d" \
+"SDImage.d" \
 "SPI.d" \
-"ST7735.d" \
+"ST7735_SDC.d" \
 "SlidePot.d" \
 "SmallFont.d" \
 "Sound.d" \
@@ -96,6 +125,8 @@ CPP_DEPS__QUOTED += \
 "Switch.d" \
 "TExaS.d" \
 "Timer.d" \
+"diskio.d" \
+"ff.d" \
 "track.d" 
 
 CPP_SRCS__QUOTED += \
@@ -105,8 +136,9 @@ CPP_SRCS__QUOTED += \
 "../LED.cpp" \
 "../Lab9HMain.cpp" \
 "C:/Projects/319/MSPM0_ValvanoWare/inc/LaunchPad.cpp" \
+"../SDImage.cpp" \
 "C:/Projects/319/MSPM0_ValvanoWare/inc/SPI.cpp" \
-"C:/Projects/319/MSPM0_ValvanoWare/inc/ST7735.cpp" \
+"../ST7735_SDC.cpp" \
 "C:/Projects/319/MSPM0_ValvanoWare/inc/SlidePot.cpp" \
 "../SmallFont.cpp" \
 "../Sound.cpp" \
@@ -114,6 +146,12 @@ CPP_SRCS__QUOTED += \
 "../Switch.cpp" \
 "C:/Projects/319/MSPM0_ValvanoWare/inc/TExaS.cpp" \
 "C:/Projects/319/MSPM0_ValvanoWare/inc/Timer.cpp" \
+"../diskio.cpp" \
+"../ff.cpp" \
 "../track.cpp" 
+
+C_SRCS__QUOTED += \
+"../UART.c" \
+"../UARTbusywait.c" 
 
 
